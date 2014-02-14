@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
                loadapplySurface(2*i,2*j,image[4],screen);
             if(map1[i][j].gettype()=='H')
                loadapplySurface(2*i,2*j,image[5],screen);
-            if(map1[i][j].gettype()=='p')
+            if(map1[i][j].gettype()=='P')
                loadapplySurface(2*i,2*j,image[6],screen);
             if(map1[i][j].gettype()=='D')
                loadapplySurface(2*i,2*j,image[7],screen);
@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
                 Run = false;
         }
     }
+    SDL_SaveBMP( screen,"sinfractalsum.BMP" );
     close();
     return 0;
 
@@ -102,7 +103,7 @@ int main(int argc, char* argv[]) {
 		else 
 		{ 	
 			//set the caption of the the window will also set icon image later
-			SDL_WM_SetCaption("Last Alive", NULL);
+			SDL_WM_SetCaption("World-A", NULL);
 		} 
 	}	 
 	return success; 

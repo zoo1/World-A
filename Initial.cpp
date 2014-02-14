@@ -4,25 +4,28 @@
 #include <stdio.h>
 #include "PerlinNoise.h"
 #include "land.h"
+#include <math.h>
 using namespace std;
 
 std::vector< std::vector< land > > initial(int length, int width){
-	float seed,density=0.0000001*length*width;
+	float seed,density=0.00000005*length*width;
 	Perlin p;
 	printf("Seed?\n");
 	scanf("%f",&seed);
 	//seed is determines the value of the z dimension of noise 
-	//need to determine a value in which length and width map to -1 to 1
 	float height,min=9999,max=-111111;
 	float height1,min1=9999,max1=-111111;
 	vector< vector< land > > map1(length,vector< land > (width));
 	vector< vector<float> > map(length,vector<float> (width, 0));
 	vector< vector<float> > temp1(length,vector<float> (width, 0));
+	//noise generation algorithm |noise(p)|+|noise(2p))/2+...
 	for(int i=0;i<length;i++)
 	{
 		for(int j=0;j<width;j++)
 		{
-			height=p.noise((.4+i*density),(.5+j*density),seed)*10+p.noise(2*(.4+i*density),2*(.5+j*density),seed)*5+p.noise(4*(.4+i*density),4*(.5+j*density),seed)*2.5;
+			height=0;
+			for(float w=1;w<6;w++)
+				height+=fabs(p.noise((.4+i*density)*w,(.5+j*density)*w,seed))*(10/w);
 			if(height>max)max=height;
 			if(height<min)min=height;
 			map[i][j]=height;
@@ -32,6 +35,7 @@ std::vector< std::vector< land > > initial(int length, int width){
 			temp1[i][j]=height1;
 		}
 	}
+	//boundrey water generation and normalization
 	for(int i=0;i<length;i++)
 	{
 		for(int j=0;j<width;j++)
@@ -49,7 +53,7 @@ std::vector< std::vector< land > > initial(int length, int width){
 		{
 		char type=map1[i][j].gettype();
 		//forest generation
-		if((type=='g'||type=='h')&&temp1[i][j]<30)
+		if((type=='g')&&temp1[i][j]<30)
 		{
 			map1[i][j].settype('f');
 		}
