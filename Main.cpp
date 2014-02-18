@@ -13,7 +13,7 @@ SDL_Surface* fg = NULL, *bg = NULL, *screen = NULL;
 // Prototypes:
 int loadapplySurface(int, int, SDL_Surface*, SDL_Surface*); // Applies image, but does not refresh screen
 void FreeIMG(SDL_Surface*, ...); // Clears an image
-void close();
+void close(vector<SDL_Surface*>);
 bool init();
 
 int main(int argc, char* argv[]) {
@@ -29,7 +29,8 @@ int main(int argc, char* argv[]) {
     {
         printf("%d %s\n",i,textland[i].c_str());
         if((image[i] = IMG_Load(textland[i].c_str())) == NULL) {
-        return 1;
+            close(image);
+            return 1;
         }
     }
     SDL_Surface* Surf_Temp = NULL;
@@ -41,29 +42,29 @@ int main(int argc, char* argv[]) {
         {
             if(map1[i][j].gettype()=='W')
                loadapplySurface(2*i,2*j,image[0],screen);
-            if(map1[i][j].gettype()=='w')
+            else if(map1[i][j].gettype()=='w')
                loadapplySurface(2*i,2*j,image[1],screen);
-            if(map1[i][j].gettype()=='s')
+            else if(map1[i][j].gettype()=='s')
                loadapplySurface(2*i,2*j,image[2],screen);
-            if(map1[i][j].gettype()=='g')
+            else if(map1[i][j].gettype()=='g')
                loadapplySurface(2*i,2*j,image[3],screen);
-            if(map1[i][j].gettype()=='h')
+            else if(map1[i][j].gettype()=='h')
                loadapplySurface(2*i,2*j,image[4],screen);
-            if(map1[i][j].gettype()=='H')
+            else if(map1[i][j].gettype()=='H')
                loadapplySurface(2*i,2*j,image[5],screen);
-            if(map1[i][j].gettype()=='P')
+            else if(map1[i][j].gettype()=='P')
                loadapplySurface(2*i,2*j,image[6],screen);
-            if(map1[i][j].gettype()=='D')
+            else if(map1[i][j].gettype()=='D')
                loadapplySurface(2*i,2*j,image[7],screen);
-            if(map1[i][j].gettype()=='f')
+            else if(map1[i][j].gettype()=='f')
                loadapplySurface(2*i,2*j,image[8],screen);
-            if(map1[i][j].gettype()=='e')
+            else if(map1[i][j].gettype()=='e')
                loadapplySurface(2*i,2*j,image[9],screen);
-
         }
     }
     // Update the screen:
     if (SDL_Flip(screen) == -1) {
+                close(image);
                 return 1; // The screen failed to be updated...
             }
     SDL_Event Events;
@@ -76,8 +77,8 @@ int main(int argc, char* argv[]) {
                 Run = false;
         }
     }
-    SDL_SaveBMP( screen,"sinfractalsum.BMP" );
-    close();
+    SDL_SaveBMP( screen,"final.BMP" );
+    close(image);
     return 0;
 
  }
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
 	else 
 	{ 
 		//Create window 
-		screen = SDL_SetVideoMode(1024, 768, sc_bpp, SDL_SWSURFACE);
+		screen = SDL_SetVideoMode(1300, 714, sc_bpp, SDL_SWSURFACE);
 		if( screen == NULL ) { 
 			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() ); 
 			success = false; 
@@ -121,9 +122,11 @@ int loadapplySurface(int x, int y, SDL_Surface* source, SDL_Surface* destination
     SDL_FreeSurface(Surf_Temp);
     return 0;
 }
-void close() //ends the SDL program
+void close(vector<SDL_Surface*> freeme) //ends the SDL program and frees the images
 {
-	
+    for(int i=0;i<freeme.size();i++)
+        SDL_FreeSurface(freeme[i]);
+	SDL_FreeSurface(screen);
 	screen = NULL;
 	//Quit SDL subsystems 
 	SDL_Quit();

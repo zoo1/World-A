@@ -6,9 +6,11 @@
 #include "land.h"
 #include <math.h>
 using namespace std;
+//prototype
+void recursiveremoval(std::vector< std::vector< land > >*,int,int);
 
 std::vector< std::vector< land > > initial(int length, int width){
-	float seed,density=0.00000005*length*width;
+	float seed,density=0.000000045*length*width;
 	Perlin p;
 	printf("Seed?\n");
 	scanf("%f",&seed);
@@ -42,7 +44,10 @@ std::vector< std::vector< land > > initial(int length, int width){
 		{
 			height=(map[i][j]-min)*(100/(max-min));
 			temp1[i][j]=(temp1[i][j]-min1)*(100/(max1-min1));
-			if((i<length*.02)||(j<width*.02)||(i>length*.98)||j>width*.98){height=height*.2;}
+			//just cut off the block edge
+			//if((i<length*.02)||(j<width*.02)||(i>length*.98)||j>width*.98){height=height*.2;}
+			
+
 			map1[i][j].setheighttype(height);
 		}
 	}
@@ -58,7 +63,7 @@ std::vector< std::vector< land > > initial(int length, int width){
 			map1[i][j].settype('f');
 		}
 		//eruptive generation
-		if(type=='P'&&temp1[i][j]>90)
+		else if(type=='P'&&temp1[i][j]>90)
 		{
 			map1[i][j].settype('e');
 		}
@@ -67,9 +72,30 @@ std::vector< std::vector< land > > initial(int length, int width){
 		{
 			map1[i][j].settype('D');
 		}
+		if((i==0||j==0||j==width||i==length)&& map1[i][j].gettype()!='W'&&map1[i][j].gettype()!='s')
+		{
+			recursiveremoval(&map1,i,j);
+		}
 		}
 	}
 	return map1;
+}
+//recursive algorithm for watering land near the edge of map
+void recursiveremoval(std::vector< std::vector< land > > * map1,int i,int j)
+{
+	printf("%d,%d\n",i,j);
+	char current=(*map1)[i][j].gettype();
+	printf("%c",current);
+	(*map1)[i][j].settype('W');
+	printf("%c", (*map1)[i][j].gettype());
+	if(i>0&& (*map1)[i-1][j].gettype()==current)
+		recursiveremoval(map1,i-1,j);
+	if(i< (*map1).size()-1&& (*map1)[i+1][j].gettype()==current)
+		recursiveremoval(map1,i+1,j);
+	if(j< (*map1)[0].size()-1&& (*map1)[i][j+1].gettype()==current)
+		recursiveremoval(map1,i,j+1);
+	if(j>0&& (*map1)[i][j-1].gettype()==current)
+		recursiveremoval(map1,i,j-1);
 }
 
 //vector holds all different land texture strings
