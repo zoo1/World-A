@@ -7,10 +7,10 @@
 #include <math.h>
 using namespace std;
 //prototype
-void recursiveremoval(std::vector< std::vector< land > >*,int,int);
+void edgremove(vector< vector<float> >*,int,int,int);
 
 std::vector< std::vector< land > > initial(int length, int width){
-	float seed,density=0.000000045*length*width;
+	float seed,density=0.000000045*length*width,cutoff=sqrtf(powf(length,2)+powf(width,2))*.2;
 	Perlin p;
 	printf("Seed?\n");
 	scanf("%f",&seed);
@@ -38,16 +38,21 @@ std::vector< std::vector< land > > initial(int length, int width){
 		}
 	}
 	//boundrey water generation and normalization
+	float multiplier,current;
 	for(int i=0;i<length;i++)
 	{
 		for(int j=0;j<width;j++)
 		{
-			height=(map[i][j]-min)*(100/(max-min));
+			current=sqrtf(powf(fabs((length/2)-(float)i),2)+powf(fabs((width/2)-(float)j),2));
+			multiplier=1;
+			if(cutoff<current)
+			{
+				multiplier=1-(current-cutoff)*.025;
+				if(multiplier<0)
+					multiplier=0;
+			}
+			height=multiplier*(map[i][j]-min)*(100/(max-min));
 			temp1[i][j]=(temp1[i][j]-min1)*(100/(max1-min1));
-			//just cut off the block edge
-			//if((i<length*.02)||(j<width*.02)||(i>length*.98)||j>width*.98){height=height*.2;}
-			
-
 			map1[i][j].setheighttype(height);
 		}
 	}
@@ -72,30 +77,27 @@ std::vector< std::vector< land > > initial(int length, int width){
 		{
 			map1[i][j].settype('D');
 		}
-		if((i==0||j==0||j==width||i==length)&& map1[i][j].gettype()!='W'&&map1[i][j].gettype()!='s')
-		{
-			recursiveremoval(&map1,i,j);
-		}
 		}
 	}
 	return map1;
 }
-//recursive algorithm for watering land near the edge of map
-void recursiveremoval(std::vector< std::vector< land > > * map1,int i,int j)
+//recursive algorithm for watering land near the edge of map no longer in use
+void edgremove(vector< vector<float> > * edger,int i,int j, int rolesize)
 {
-	printf("%d,%d\n",i,j);
-	char current=(*map1)[i][j].gettype();
-	printf("%c",current);
-	(*map1)[i][j].settype('W');
-	printf("%c", (*map1)[i][j].gettype());
-	if(i>0&& (*map1)[i-1][j].gettype()==current)
-		recursiveremoval(map1,i-1,j);
-	if(i< (*map1).size()-1&& (*map1)[i+1][j].gettype()==current)
-		recursiveremoval(map1,i+1,j);
-	if(j< (*map1)[0].size()-1&& (*map1)[i][j+1].gettype()==current)
-		recursiveremoval(map1,i,j+1);
-	if(j>0&& (*map1)[i][j-1].gettype()==current)
-		recursiveremoval(map1,i,j-1);
+	if(rolesize>0&&i>=0&&j>=0&&i<(*edger).size()&&j<(*edger)[0].size())
+	{
+		(*edger)[i][j] *=.9;
+		rolesize--;
+		if(i>0)
+			edgremove(edger,i-1,j,rolesize);
+		if(i<(*edger).size())
+			edgremove(edger,i+1,j,rolesize);
+		if(j>0)
+			edgremove(edger,i,j-1,rolesize);
+		if(j<(*edger)[0].size())
+			edgremove(edger,i,j+1,rolesize);
+	}
+	
 }
 
 //vector holds all different land texture strings

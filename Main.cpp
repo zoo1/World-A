@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
     vector<SDL_Surface*> image(textland.size());
     for(int i=0;i<textland.size();i++)
     {
-        printf("%d %s\n",i,textland[i].c_str());
         if((image[i] = IMG_Load(textland[i].c_str())) == NULL) {
             close(image);
             return 1;
