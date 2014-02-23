@@ -1,18 +1,18 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <string>
+#include <list>
 #include <stdio.h>
 #include "Initial.h"
+#include "org.h"
 using namespace std;
 // Globals:
 const int sc_bpp    = 32;  // Bits per pixel.
 
-// foreground, background, screen
-SDL_Surface* fg = NULL, *bg = NULL, *screen = NULL;
-
+//screen surface
+SDL_Surface* screen = NULL;
 // Prototypes:
 int loadapplySurface(int, int, SDL_Surface*, SDL_Surface*); // Applies image, but does not refresh screen
-void FreeIMG(SDL_Surface*, ...); // Clears an image
 void close(vector<SDL_Surface*>);
 bool init();
 
@@ -34,31 +34,53 @@ int main(int argc, char* argv[]) {
     }
     SDL_Surface* Surf_Temp = NULL;
         
-
     for(int i=0;i<map1.size();i++)
     {
         for(int j=0;j<map1[0].size();j++)
         {
-            if(map1[i][j].gettype()=='W')
-               loadapplySurface(2*i,2*j,image[0],screen);
-            else if(map1[i][j].gettype()=='w')
-               loadapplySurface(2*i,2*j,image[1],screen);
-            else if(map1[i][j].gettype()=='s')
-               loadapplySurface(2*i,2*j,image[2],screen);
-            else if(map1[i][j].gettype()=='g')
-               loadapplySurface(2*i,2*j,image[3],screen);
-            else if(map1[i][j].gettype()=='h')
-               loadapplySurface(2*i,2*j,image[4],screen);
-            else if(map1[i][j].gettype()=='H')
-               loadapplySurface(2*i,2*j,image[5],screen);
-            else if(map1[i][j].gettype()=='P')
-               loadapplySurface(2*i,2*j,image[6],screen);
-            else if(map1[i][j].gettype()=='D')
-               loadapplySurface(2*i,2*j,image[7],screen);
-            else if(map1[i][j].gettype()=='f')
-               loadapplySurface(2*i,2*j,image[8],screen);
-            else if(map1[i][j].gettype()=='e')
-               loadapplySurface(2*i,2*j,image[9],screen);
+            switch(map1[i][j].gettype())
+            {
+            case 'W':
+                loadapplySurface(2*i,2*j,image[0],screen);
+                map1[i][j].setsurf(image[0]);
+                break;
+            case 'w':
+                loadapplySurface(2*i,2*j,image[1],screen);
+                map1[i][j].setsurf(image[1]);
+                break;
+            case 's':
+                loadapplySurface(2*i,2*j,image[2],screen);
+                map1[i][j].setsurf(image[2]);
+                break;
+            case 'g':
+                loadapplySurface(2*i,2*j,image[3],screen);
+                map1[i][j].setsurf(image[3]);
+                break;
+            case 'h':
+                loadapplySurface(2*i,2*j,image[4],screen);
+                map1[i][j].setsurf(image[4]);
+                break;
+            case 'H':
+                loadapplySurface(2*i,2*j,image[5],screen);
+                map1[i][j].setsurf(image[5]);
+                break;
+            case 'P':
+                loadapplySurface(2*i,2*j,image[6],screen);
+                map1[i][j].setsurf(image[6]);
+                break;
+            case 'D':
+                loadapplySurface(2*i,2*j,image[7],screen);
+                map1[i][j].setsurf(image[7]);
+                break;
+            case 'f':
+                loadapplySurface(2*i,2*j,image[8],screen);
+                map1[i][j].setsurf(image[8]);
+                break;
+            case 'e':
+                loadapplySurface(2*i,2*j,image[9],screen);
+                map1[i][j].setsurf(image[9]);
+                break;
+            }              
         }
     }
     // Update the screen:
@@ -66,10 +88,56 @@ int main(int argc, char* argv[]) {
                 close(image);
                 return 1; // The screen failed to be updated...
             }
+    //generation of team textures
+    vector<string> textteam=textureteam();
+    vector<SDL_Surface*> image1(textteam.size());
+    for(int i=0;i<textteam.size();i++)
+    {
+        if((image1[i] = IMG_Load(textteam[i].c_str())) == NULL) {
+            close(image1);
+            return 1;}
+    }
+    //team placement
+    list<org> L;
+    int p=0;   
+    while(p<textteam.size())
+    {
+        int i=rand()%map1.size(),j=rand()%map1[0].size();
+    if(map1[i][j].gettype()!='W'){
+        loadapplySurface(2*i,2*j,image1[p],screen);
+        org temp(i,j);
+        temp.setsurf(image1[p++]);
+        L.push_back(temp);
+        }
+    }
+    if (SDL_Flip(screen) == -1) 
+    {
+        close(image);
+        return 1;
+    }
+    //runtime logic
     SDL_Event Events;
-    bool Run=true;
+    bool Run=true,state=true;
     while(Run)
     {
+        list<org>::iterator i;
+        for(i=L.begin(); i != L.end(); ++i)
+        {
+            if(state)
+            {
+                loadapplySurface((*i).i*2,(*i).j*2,map1[(*i).i][(*i).j].getsurf(),screen);
+            }
+            else
+            {
+                loadapplySurface((*i).i*2,(*i).j*2,(*i).getsurf(),screen);
+            }
+        }
+        state=!state;
+        if (SDL_Flip(screen) == -1) 
+        {
+            close(image);
+            return 1;
+        }
         while (SDL_PollEvent(&Events))
         {
             if (Events.type == SDL_QUIT)

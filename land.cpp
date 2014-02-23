@@ -17,3 +17,9 @@ char land::getstatus(){return(status);}
 void land::setstatus(char in){
 	status=in;
 }
+void land::setsurf(SDL_Surface* in){
+surf=in;
+}
+SDL_Surface* land::getsurf(){
+return surf;
+}

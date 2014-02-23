@@ -122,5 +122,9 @@ std::vector<string> textureteam(){
 	vector <string> rtd;
 
 	rtd.push_back("textures/red.jpg");
+	rtd.push_back("textures/purple.jpg");
+	rtd.push_back("textures/neonblue.jpg");
+	rtd.push_back("textures/maroon.jpg");
+	rtd.push_back("textures/yellow.jpg");
 	return rtd;
 	}
