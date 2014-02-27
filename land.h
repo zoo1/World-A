@@ -10,7 +10,7 @@ private:
 	//g=grassland h=low hills H=highhills P=peak f=forrest e=eruptive D=deadlands 
 	char type,status;
 	//status holds things that my change throughout the game this will be used for water,eruption,flooded maybe
-	SDL_Surface* surf;
+	SDL_Surface *surf;
  
 public:
     char setheighttype(float);
