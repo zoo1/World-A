@@ -7,6 +7,6 @@ libsdl-ttf2.0-dev libboost-dev
 The environment I am working on this project in is Ubuntu 12.11
 
 The whole program peices together all other files it is compiled via the command:
-g++ -I /usr/include/SDL -o b.out Main.cpp -lSDL -lSDL_image land.cpp PerlinNoise.cpp Initial.cpp
+g++ -I /usr/include/SDL -o b.out Main.cpp -lSDL -lSDL_image land.cpp PerlinNoise.cpp Util.cpp org.cpp
 
 Perlin Noise.cpp and Perlin Noise.h were not created by me

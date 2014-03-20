@@ -8,6 +8,7 @@
  	SDL_Surface* surf;
  	char type;
  	char aggression;
+ 	int currentgoal;
  public:
  	int i;
  	int j;

@@ -4,43 +4,29 @@
 #include <list>
 #include <stdio.h>
 #include "Util.h"
+#include "Init.h"
 #include "org.h"
 using namespace std;
-// runtime structure
-struct coord{
-    int i,j;
-    bool alive;
-};
+
 // Globals:
-const int sc_bpp    = 32;  // Bits per pixel.
-
-//screen surface
-SDL_Surface* screen = NULL;
-
-// Prototypes:
-void filler(int, int , list<coord>*,int, int);//updates all the coords around the given point if they are alive
-bool isalive(int, int, list<coord>*);
-int loadapplySurface(int, int, SDL_Surface*, SDL_Surface*); // Applies image, but does not refresh screen
-void close(vector<SDL_Surface*>);
-bool init();
+SDL_Surface* screen = NULL; //screen surface
 
 int main(int argc, char* argv[]) {
     if(!init())exit(1);
     //reads the info of the window
     const SDL_VideoInfo* info = SDL_GetVideoInfo();
 	int sc_width = info->current_w, sc_height = info->current_h;
-	vector< vector< land > > map1=initial((info->current_w)/2,(info->current_h)/2);
+	vector< vector< land > > map1=initial((info->current_w)*2,(info->current_h)*2);
     //loads the texture images we will be using
     vector<string> textland=textureland();
     vector<SDL_Surface*> image(textland.size());
     for(int i=0;i<textland.size();i++)
     {
-        if((image[i] = IMG_Load(textland[i].c_str())) == NULL) {
+        if((image[i] = SDL_LoadBMP(textland[i].c_str())) == NULL) {
             close(image);
             return 1;
         }
     }
-    SDL_Surface* Surf_Temp = NULL;
         
     for(int i=0;i<map1.size();i++)
     {
@@ -49,43 +35,53 @@ int main(int argc, char* argv[]) {
             switch(map1[i][j].gettype())
             {
             case 'W':
-                loadapplySurface(2*i,2*j,image[0],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[0],screen);
                 map1[i][j].setsurf(image[0]);
                 break;
             case 'w':
-                loadapplySurface(2*i,2*j,image[1],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[1],screen);
                 map1[i][j].setsurf(image[1]);
                 break;
             case 's':
-                loadapplySurface(2*i,2*j,image[2],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[2],screen);
                 map1[i][j].setsurf(image[2]);
                 break;
             case 'g':
-                loadapplySurface(2*i,2*j,image[3],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[3],screen);
                 map1[i][j].setsurf(image[3]);
                 break;
             case 'h':
-                loadapplySurface(2*i,2*j,image[4],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[4],screen);
                 map1[i][j].setsurf(image[4]);
                 break;
             case 'H':
-                loadapplySurface(2*i,2*j,image[5],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[5],screen);
                 map1[i][j].setsurf(image[5]);
                 break;
             case 'P':
-                loadapplySurface(2*i,2*j,image[6],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[6],screen);
                 map1[i][j].setsurf(image[6]);
                 break;
             case 'D':
-                loadapplySurface(2*i,2*j,image[7],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[7],screen);
                 map1[i][j].setsurf(image[7]);
                 break;
             case 'f':
-                loadapplySurface(2*i,2*j,image[8],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[8],screen);
                 map1[i][j].setsurf(image[8]);
                 break;
             case 'e':
-                loadapplySurface(2*i,2*j,image[9],screen);
+                if(i%4==0&&j%4==0)
+                    loadapplySurface(i/2,j/2,image[9],screen);
                 map1[i][j].setsurf(image[9]);
                 break;
             }              
@@ -106,36 +102,22 @@ int main(int argc, char* argv[]) {
             return 1;}
     }
     //team placement
-    std::list <coord> runtime;
     list<org> L;
-    int p=0;   
+    int p=0,count=0;   
     while(p<textteam.size())
     {
         int i=rand()%map1.size(),j=rand()%map1[0].size();
     if(map1[i][j].gettype()!='W'){
-        loadapplySurface(2*i,2*j,image1[p],screen);        
+        loadapplySurface(i/2,j/2,image1[p],screen);        
         org temp(i,j);
         temp.setsurf(image1[p]);
         L.push_back(temp);
-        coord temp1;
-        temp1.i=i;
-        temp1.j=j;
-        temp1.alive=true;
-        runtime.push_back(temp1);
-        for(int x=0;x<20;x++)
-        {
-            int u=(rand()%5)+1, o=(rand()%5)+1;
-            loadapplySurface(2*i+u,2*j+o,image1[p],screen);
-            org temp(i+u,j+o);
-            temp.setsurf(image1[p]);
-            L.push_back(temp);
-            coord temp1;
-            temp1.i=i+u;
-            temp1.j=j+o;
-            temp1.alive=true;
-            runtime.push_back(temp1);
-        }
-        p++;
+        if(count==5)
+            {
+                count=0;
+                p++;
+            }
+        count++;
         }
     }
     if (SDL_Flip(screen) == -1) 
@@ -152,82 +134,12 @@ int main(int argc, char* argv[]) {
         list<org>::iterator i;
         for(i=L.begin(); i != L.end(); ++i)
         {
-            //look in each direction and if there is it is empty if it is place in runtime que
-            filler((*i).i,(*i).j,&runtime,(info->current_w)/2,(info->current_h)/2);
+            
         }
         //run game of life logic
         SDL_Delay(1000);
-        list<coord> tempruntime;
         list<org> tempL;
-        list<coord>::iterator w;
-        for(w=runtime.begin();w!=runtime.end();++w)
-        {
-            int q=0;
-            //look around current position and find amount of alive cells around the current one
-            //i-1 j
-            if((w->i-1)>=0&&isalive(w->i-1,w->j,&runtime))
-                q++;
-            //i-1 j-1
-            if(w->i-1>=0&&w->j-1>=0&&isalive(w->i-1,w->j-1, &runtime))
-                q++;
-            //i j-1
-            if(w->j-1>=0&&isalive(w->i,w->j-1,&runtime))
-                q++;
-            //i j+1
-            if(w->j<info->current_w/2&&isalive(w->i,w->j+1,&runtime))
-                q++;
-            //i+1 j+1
-            if(w->i<info->current_h/2&&w->j<info->current_w/2&&isalive(w->i+1,w->j+1,&runtime))
-                q++;
-            //i+1 j
-            if(w->i<info->current_h/2&&isalive(w->i+1,w->j,&runtime))
-                q++;
-            //i-1 j+1
-            if(w->i-1>=0&&w->j+1<info->current_w/2&&isalive(w->i-1,w->j-1, &runtime))
-                q++;
-            //i+1 j-1
-            if(w->j-1>=0&&w->i+1<info->current_h/2&&isalive(w->i+1,w->j-1,&runtime))
-                q++;
-            if((*w).alive)
-            {
-                if(q<2)
-                {
-                    loadapplySurface(2*w->i,2*w->j,map1[w->i][w->j].getsurf(),screen);
-                }
-                if(q==2||q==3)
-                {
-                    coord temp;
-                    temp.alive=true;
-                    temp.i=w->i;
-                    temp.j=w->j;
-                    tempruntime.push_back(temp);
-                    list<org>::iterator z;
-                    for(z=L.begin();z!=L.end();++z)
-                        if(z->i==w->i&&z->j==w->j)
-                            tempL.push_back((*z));
-                }
-                if(q>3)
-                {
-                    loadapplySurface(2*w->i,2*w->j,map1[w->i][w->j].getsurf(),screen);   
-                }
-            }   
-            else
-                if(q==3)
-                {
-                 coord temp;
-                    temp.alive=true;
-                    temp.i=w->i;
-                    temp.j=w->j;
-                    tempruntime.push_back(temp);
-                    SDL_Surface* tempimg=image1[rand()%5];
-                    loadapplySurface(2*w->i,2*w->j,tempimg,screen);
-                    org temp3(w->i,w->j);
-                    temp3.setsurf(tempimg);
-                    L.push_back(temp3);
-                }
-            printf("%d\n",q);
-        }
-        runtime=tempruntime;
+        
         L=tempL;
         if (SDL_Flip(screen) == -1) 
         {
@@ -236,173 +148,50 @@ int main(int argc, char* argv[]) {
         }
         while (SDL_PollEvent(&Events))
         {
-            if (Events.type == SDL_QUIT)
-                Run = false;
+            switch(Events.type) {
+                case SDL_QUIT:
+                    Run = false;
+                    break;
+                case SDL_KEYDOWN:
+                    switch( Events.key.keysym.sym ) { 
+                        case SDLK_1:
+                            zoom(true,map1);
+                            break;
+                        case SDLK_2:
+                            zoom(false,map1);
+                            break;
+                        case SDLK_UP: 
+                            slide('u',map1);
+                            break; 
+                        case SDLK_DOWN: 
+                            slide('d',map1); 
+                            break; 
+                        case SDLK_LEFT:
+                            slide('l',map1);
+                            break; 
+                        case SDLK_RIGHT: 
+                            slide('r',map1);
+                            break; 
+                        default:;
+                    }
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    switch( Events.button.button){
+                        case SDL_BUTTON_WHEELUP:
+                            printf("scrollin\n");
+                            zoom(true,map1);
+                            break;
+                        case SDL_BUTTON_WHEELDOWN:
+                            printf("scrollout\n");
+                            zoom(false,map1);
+                            break; 
+                    }
+                    break;
+                default:;
+            }
         }
     }
     SDL_SaveBMP( screen,"final.BMP" );
     close(image);
     return 0;
  }
-
- bool init() { 
-	 
-	bool success = true; 
-
-	//Initialize SDL 
-	if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 ) 
-	{ 
-		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() ); 
-		success = false; 
-	} 
-	else 
-	{ 
-		//Create window 
-		screen = SDL_SetVideoMode(1300, 714, sc_bpp, SDL_SWSURFACE);
-		if( screen == NULL ) { 
-			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() ); 
-			success = false; 
-		} 
-		else 
-		{ 	
-			//set the caption of the the window will also set icon image later
-			SDL_WM_SetCaption("World-A", NULL);
-		} 
-	}	 
-	return success; 
-}
-int loadapplySurface(int x, int y, SDL_Surface* source, SDL_Surface* destination) // Creates image, applies it to a surface,but does not refresh the screen
-{
-    //Make a temporary rectange to hold the offsets
-    SDL_Rect offset;
-
-    //Give the offsets to the rectangle
-    offset.x = x;
-    offset.y = y;
-    SDL_Surface* Surf_Temp = SDL_DisplayFormatAlpha(source);
-    SDL_BlitSurface( Surf_Temp, NULL, screen, &offset );
-    SDL_FreeSurface(Surf_Temp);
-    return 0;
-}
-void close(vector<SDL_Surface*> freeme) //ends the SDL program and frees the images
-{
-    for(int i=0;i<freeme.size();i++)
-        SDL_FreeSurface(freeme[i]);
-	SDL_FreeSurface(screen);
-	screen = NULL;
-	//Quit SDL subsystems 
-	SDL_Quit();
-}
-void filler(int i, int j, std::list <coord>* runtime, int width, int height)
-{
-    vector<bool> alive=vector<bool>(8,true);
-    list<coord>::iterator p;
-    for(p=(*runtime).begin(); p != (*runtime).end(); ++p)
-    {
-        //i-1 j
-        if(i-1==(*p).i&&j==(*p).j)
-            alive[0]=false;
-        //i-1 j-1
-        if(i-1==(*p).i&&j-1==(*p).j)
-            alive[1]=false;
-        //i j-1
-        if(i==(*p).i&&j-1==(*p).j)
-            alive[2]=false;
-        //i j+1
-        if(i==(*p).i&&j+1==(*p).j)
-            alive[3]=false;
-        //i+1 j+1
-        if(i+1==(*p).i&&j+1==(*p).j)
-            alive[4]=false;
-        //i+1 j
-        if(i+1==(*p).i&&j==(*p).j)
-            alive[5]=false;
-        //i-1 j+1
-        if(i-1==(*p).i&&j+1==(*p).j)
-            alive[6]=false;
-        //i+1 j-1
-        if(i+1==(*p).i&&j-1==(*p).j)
-            alive[7]=false;
-    }
-        //i-1 j
-        if(alive[0]&&i-1>=0)
-        {
-        coord temp1;
-        temp1.i=i-1;
-        temp1.j=j;
-        temp1.alive=false;
-        (*runtime).push_back(temp1);    
-        }
-        //i-1 j-1
-        if(alive[1]&&i-1>=0&&j-1>=0)
-        {
-        coord temp1;
-        temp1.i=i-1;
-        temp1.j=j-1;
-        temp1.alive=false;
-        (*runtime).push_back(temp1);    
-        }
-        //i j-1
-        if(alive[2]&&j-1>=0)
-        {
-        coord temp1;
-        temp1.i=i;
-        temp1.j=j-1;
-        temp1.alive=false;
-        (*runtime).push_back(temp1);    
-        }
-        //i j+1
-        if(alive[3]&&j+1<width)
-        {
-        coord temp1;
-        temp1.i=i;
-        temp1.j=j+1;
-        temp1.alive=false;
-        (*runtime).push_back(temp1);   
-        }
-        //i+1 j+1
-        if(alive[4]&&j+1<width&&i+1<height)
-        {
-        coord temp1;
-        temp1.i=i+1;
-        temp1.j=j+1;
-        temp1.alive=false;
-        (*runtime).push_back(temp1); 
-        }
-        //i+1 j
-        if(alive[5]&&i+1<height)
-        {
-        coord temp1;
-        temp1.i=i+1;
-        temp1.j=j;
-        temp1.alive=false;
-        (*runtime).push_back(temp1); 
-        }
-        //i-1 j+1
-        if(alive[6]&&i-1>=0&&j+1<width)
-        {
-        coord temp1;
-        temp1.i=i-1;
-        temp1.j=j+1;
-        temp1.alive=false;
-        (*runtime).push_back(temp1); 
-        }
-        //i+1 j-1
-        if(alive[0]&&j-1>=0&&i+1<height)
-        {
-        coord temp1;
-        temp1.i=i+1;
-        temp1.j=j-1;
-        temp1.alive=false;
-        (*runtime).push_back(temp1); 
-        }
-}
-bool isalive(int i, int j, list<coord>* runtime)
-{
-bool flag=false;
-list<coord>::iterator p;
-for(p=(*runtime).begin(); p != (*runtime).end(); ++p)
-    if(p->i==i&&p->j==j)
-        flag=true;
-return flag;
-}

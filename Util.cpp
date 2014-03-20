@@ -2,112 +2,223 @@
 #include <string>
 #include <vector>
 #include <stdio.h>
-#include "PerlinNoise.h"
 #include "land.h"
-#include <math.h>
-#include <SDL.h>
-#include <SDL_image.h>
+
 using namespace std;
+//From main:
+extern SDL_Surface* screen;
+// Globals:
+static int z=1; //current zoom level
+static int screeny;
+static int screenx=screeny=-1; //screen position related to zoom
+static const int sc_bpp = 32;  // Bits per pixel.
+bool init() //creates the sdl Video screen and inits everything
+{ 
+	 
+	bool success = true; 
 
-std::vector< std::vector< land > > initial(int length, int width){
-	float seed,density=0.000000045*length*width,cutoff=sqrtf(powf(length,2)+powf(width,2))*.2;
-	Perlin p;
-	printf("Seed?\n");
-	scanf("%f",&seed);
-	//seed is determines the value of the z dimension of noise 
-	float height,min=9999,max=-111111;
-	float height1,min1=9999,max1=-111111;
-	vector< vector< land > > map1(length,vector< land > (width));
-	vector< vector<float> > map(length,vector<float> (width, 0));
-	vector< vector<float> > temp1(length,vector<float> (width, 0));
-	//noise generation algorithm |noise(p)|+|noise(2p))/2+...
-	for(int i=0;i<length;i++)
-	{
-		for(int j=0;j<width;j++)
-		{
-			height=0;
-			for(float w=1;w<6;w++)
-				height+=fabs(p.noise((.4+i*density)*w,(.5+j*density)*w,seed))*(10/w);
-			if(height>max)max=height;
-			if(height<min)min=height;
-			map[i][j]=height;
-			height1=(p.noise(i*density,j*density,10*seed)*10);
-			if(height1>max1)max1=height1;
-			if(height1<min1)min1=height1;
-			temp1[i][j]=height1;
-		}
-	}
-	//boundrey water generation and normalization
-	float multiplier,current;
-	for(int i=0;i<length;i++)
-	{
-		for(int j=0;j<width;j++)
-		{
-			current=sqrtf(powf(fabs((length/2)-(float)i),2)+powf(fabs((width/2)-(float)j),2));
-			multiplier=1;
-			if(cutoff<current)
-			{
-				multiplier=1-(current-cutoff)*.025;
-				if(multiplier<0)
-					multiplier=0;
-			}
-			height=multiplier*(map[i][j]-min)*(100/(max-min));
-			temp1[i][j]=(temp1[i][j]-min1)*(100/(max1-min1));
-			map1[i][j].setheighttype(height);
-		}
-	}
+	//Initialize SDL 
+	if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 ) 
+	{ 
+		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() ); 
+		success = false; 
+	} 
+	else 
+	{ 
+		//Create window 
+		screen = SDL_SetVideoMode(1300, 714, sc_bpp, SDL_SWSURFACE);
+		if( screen == NULL ) { 
+			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() ); 
+			success = false; 
+		} 
+		else 
+		{ 	
+			//set the caption of the the window will also set icon image later
+			SDL_WM_SetCaption("World-A", NULL);
+		} 
+	}	 
+	return success; 
+}
 
-	for(int i=0;i<length;i++)
-	{
-		for(int j=0;j<width;j++)
-		{
-		char type=map1[i][j].gettype();
-		//forest generation
-		if((type=='g')&&temp1[i][j]<30)
-		{
-			map1[i][j].settype('f');
-		}
-		//eruptive generation
-		else if(type=='P'&&temp1[i][j]>90)
-		{
-			map1[i][j].settype('e');
-		}
-		//deadland generation
-		if(type!='W'&&temp1[i][j]<47&&temp1[i][j]>50)
-		{
-			map1[i][j].settype('D');
-		}
-		}
-	}
-	return map1;
+int loadapplySurface(int x, int y, SDL_Surface* source, SDL_Surface* destination) // Creates image, applies it to a surface,but does not refresh the screen
+{
+    //Make a temporary rectange to hold the offsets
+    SDL_Rect offset;
+
+    //Give the offsets to the rectangle
+    offset.x = x;
+    offset.y = y;
+    SDL_Surface* Surf_Temp = SDL_DisplayFormatAlpha(source);
+    SDL_BlitSurface( Surf_Temp, NULL, screen, &offset );
+    SDL_FreeSurface(Surf_Temp);
+    return 0;
+}
+
+void close(vector<SDL_Surface*> freeme) //ends the SDL program and frees the images
+{
+    for(int i=0;i<freeme.size();i++)
+        SDL_FreeSurface(freeme[i]);
+	SDL_FreeSurface(screen);
+	screen = NULL;
+	//Quit SDL subsystems 
+	SDL_Quit();
+}
+
+int zoom(bool inout, vector< vector< land > > map1)
+{
+    int originx,originy;
+    if(inout)   //zoom in
+    {
+        switch(z){
+            case 1: 
+                //if it has not been zoomed in yet set the coords at the center of screen
+                if(screeny==-1&&screenx==-1)
+                {
+                    screeny=map1.size()/2;
+                    screenx=map1[0].size()/2;
+                }
+                originx=screenx-map1[0].size()/4;
+                originy=screeny-map1.size()/4;
+                for(int i=0;i<map1.size()/2;i++)
+                {
+                    for(int j=0;j<map1[0].size()/2;j++)
+                    {
+                      loadapplySurface(i,j,map1[originy+i][originx+j].getsurf(),screen);  
+                    }
+                }
+                z++;
+                return 0;
+            case 2:
+                originx=screenx-map1[0].size()/8;
+                originy=screeny-map1.size()/8;
+                for(int i=0;i<map1.size()/2;i++)
+                {
+                    for(int j=0;j<map1[0].size()/2;j++)
+                    {
+                      loadapplySurface(2*i,2*j,map1[originy+i][originx+j].getsurf(),screen);  
+                    }
+                }
+                z++;
+                return 0;
+            case 3:
+                return 1;
+        }
+    }
+    else        //zoom out
+    {
+        switch(z){
+            case 1:
+                return 1;
+            case 2: //return to full map size
+                for(int i=0;i<map1.size();i++)
+                {
+                    for(int j=0;j<map1[0].size();j++)
+                    {
+                        loadapplySurface(i/2,j/2,map1[i][j].getsurf(),screen);
+                    }
+                }
+                z--;
+                return 0;
+            case 3:
+                //TODO make sure that screeenx and screeny do not lead to accessing arrays out of bounds
+                originx=screenx-map1[0].size()/4;
+                originy=screeny-map1.size()/4;
+                for(int i=0;i<map1.size()/2;i++)
+                {
+                    for(int j=0;j<map1[0].size()/2;j++)
+                    {
+                      loadapplySurface(i,j,map1[originy+i][originx+j].getsurf(),screen);  
+                    }
+                }   
+                z--;
+                return 0;
+        }
+    }
 }
 
 
+int slide(char dir, vector< vector< land > > map1)
+{
+    int line;
+    switch(dir){
+        case 'u'://up
+            loadapplySurface(0,1,screen,screen);
+            switch(z){
+                case 1:
+                    int i;
+                    line=screeny-map1.size()/4;
+                    if(line<0)
+                        line=0;
+                    for(i=0;i<map1[0].size()/4;i++)
+                        loadapplySurface(0,i*2,map1[line][i].getsurf(),screen);
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+            }
+            break;
+        case 'd'://down
+            loadapplySurface(0,-1,screen,screen);
+            switch(z){
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+            }
+            break;
+        case 'l'://left
+            loadapplySurface(1,0,screen,screen);
+            switch(z){
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+            }
+            break;
+        case 'r'://right
+            loadapplySurface(-1,0,screen,screen);
+            switch(z){
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+            }
+            break;
+    }
+}
+
 //vector holds all different land texture strings
-std::vector<string> textureland(){
+vector<string> textureland(){
 vector <string> rtd;
 
-rtd.push_back("textures/darkblue.jpg");
-rtd.push_back("textures/lightblue.jpg");
-rtd.push_back("textures/sand.jpg");
-rtd.push_back("textures/green.jpg");
-rtd.push_back("textures/lightbrown.jpg");
-rtd.push_back("textures/brown.jpg");
-rtd.push_back("textures/grey.jpg");
-rtd.push_back("textures/black.jpg");
-rtd.push_back("textures/darkgreen.jpg");
-rtd.push_back("textures/orange.jpg");
+rtd.push_back("textures/darkblue.bmp");
+rtd.push_back("textures/lightblue.bmp");
+rtd.push_back("textures/sand.bmp");
+rtd.push_back("textures/green.bmp");
+rtd.push_back("textures/lightbrown.bmp");
+rtd.push_back("textures/brown.bmp");
+rtd.push_back("textures/grey.bmp");
+rtd.push_back("textures/black.bmp");
+rtd.push_back("textures/darkgreen.bmp");
+rtd.push_back("textures/orange.bmp");
 return rtd;
 }
 
 //vector holds all different team texture strings
-std::vector<string> textureteam(){
+vector<string> textureteam(){
 	vector <string> rtd;
 
-	rtd.push_back("textures/red.jpg");
-	rtd.push_back("textures/purple.jpg");
-	rtd.push_back("textures/neonblue.jpg");
-	rtd.push_back("textures/maroon.jpg");
-	rtd.push_back("textures/yellow.jpg");
+	rtd.push_back("textures/red.bmp");
+	rtd.push_back("textures/purple.bmp");
+	rtd.push_back("textures/neonblue.bmp");
+	rtd.push_back("textures/maroon.bmp");
+	rtd.push_back("textures/yellow.bmp");
 	return rtd;
 }
