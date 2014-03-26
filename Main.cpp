@@ -2,7 +2,6 @@
 #include <SDL_image.h>
 #include <string>
 #include <list>
-#include <stdio.h>
 #include "Util.h"
 #include "Init.h"
 #include "org.h"
@@ -12,11 +11,17 @@ using namespace std;
 SDL_Surface* screen = NULL; //screen surface
 
 int main(int argc, char* argv[]) {
-    if(!init())exit(1);
+    if(!init())
+        return 1;
     //reads the info of the window
     const SDL_VideoInfo* info = SDL_GetVideoInfo();
 	int sc_width = info->current_w, sc_height = info->current_h;
-	vector< vector< land > > map1=initial((info->current_w)*2,(info->current_h)*2);
+    //Goes to the seed screen
+    int seedholder=seed();
+    if(seedholder==-1)
+        return 1;
+    //fill the map using the seed we created
+	vector< vector< land > > map1=initial((info->current_w)*2,(info->current_h)*2,(float)seedholder);
     //loads the texture images we will be using
     vector<string> textland=textureland();
     vector<SDL_Surface*> image(textland.size());
@@ -155,22 +160,22 @@ int main(int argc, char* argv[]) {
                 case SDL_KEYDOWN:
                     switch( Events.key.keysym.sym ) { 
                         case SDLK_1:
-                            zoom(true,map1);
+                            zoom(true,&map1);
                             break;
                         case SDLK_2:
-                            zoom(false,map1);
+                            zoom(false,&map1);
                             break;
                         case SDLK_UP: 
-                            slide('u',map1);
+                            slide('u',&map1);
                             break; 
                         case SDLK_DOWN: 
-                            slide('d',map1); 
+                            slide('d',&map1); 
                             break; 
                         case SDLK_LEFT:
-                            slide('l',map1);
+                            slide('l',&map1);
                             break; 
                         case SDLK_RIGHT: 
-                            slide('r',map1);
+                            slide('r',&map1);
                             break; 
                         default:;
                     }
@@ -178,12 +183,10 @@ int main(int argc, char* argv[]) {
                 case SDL_MOUSEBUTTONDOWN:
                     switch( Events.button.button){
                         case SDL_BUTTON_WHEELUP:
-                            printf("scrollin\n");
-                            zoom(true,map1);
+                            zoom(true,&map1);
                             break;
                         case SDL_BUTTON_WHEELDOWN:
-                            printf("scrollout\n");
-                            zoom(false,map1);
+                            zoom(false,&map1);
                             break; 
                     }
                     break;

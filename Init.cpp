@@ -9,12 +9,10 @@ using namespace std;
 static const float DMULT=9000;
 static const float XNOISE=.4, YNOISE=.5;
 
-std::vector< std::vector< land > > initial(int length, int width){
+std::vector< std::vector< land > > initial(int length, int width,float seed){
 	//9000 magic number
-	float seed,density=DMULT*(1/float(length))*(1/float(width)),cutoff=sqrtf(powf(length,2)+powf(width,2))*.2;
+	float density=DMULT*(1/float(length))*(1/float(width)),cutoff=sqrtf(powf(length,2)+powf(width,2))*.2;
 	Perlin p;
-	printf("Seed?\n");
-	scanf("%f",&seed);
 	//seed is determines the value of the z dimension of noise 
 	float height,min=9999,max=-111111;
 	float height1,min1=9999,max1=-111111;
