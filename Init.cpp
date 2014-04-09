@@ -1,8 +1,10 @@
 #include <vector>
-#include <stdio.h>
+#include <iostream>
 #include "PerlinNoise.h"
 #include "land.h"
 #include <math.h>
+//remove later used for timing
+#include <time.h> 
 
 using namespace std;
 //current magic numbers:
@@ -10,6 +12,7 @@ static const float DMULT=9000;
 static const float XNOISE=.4, YNOISE=.5;
 
 std::vector< std::vector< land > > initial(int length, int width,float seed){
+	clock_t t=clock();
 	//9000 magic number
 	float density=DMULT*(1/float(length))*(1/float(width)),cutoff=sqrtf(powf(length,2)+powf(width,2))*.2;
 	Perlin p;
@@ -37,6 +40,7 @@ std::vector< std::vector< land > > initial(int length, int width,float seed){
 			temp1[i][j]=height1;
 		}
 	}
+	cout<<"After noise generation is mapped created time:"<<float(t-clock())/CLOCKS_PER_SEC<<endl;
 	//boundry water generation and normalization
 	float multiplier,current;
 	for(int i=0;i<length;i++)
@@ -79,5 +83,6 @@ std::vector< std::vector< land > > initial(int length, int width,float seed){
 		}
 		}
 	}
+	cout<<"Rest of generation time:"<<float(t-clock())/CLOCKS_PER_SEC<<endl;
 	return map1;
 }

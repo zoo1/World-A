@@ -17,6 +17,7 @@ static int screeny=1300,screenx=714;//screen position related to zoom
 static const int sc_bpp = 32;  // Bits per pixel.
 
 //seed screen that asks for the users seed
+
 int seed()
 {
     //Initial method
@@ -26,14 +27,13 @@ int seed()
     loadapplySurface( 0, 150, message, screen );
     message = TTF_RenderText_Blended( font, "Seed:", textColor );
     loadapplySurface( 0, 200, message, screen );
-
     //allow the user to exit or to place the seed in starting the game
     char seedarray[11]="0";
     int seed=0;
     int currentplace=0;
     SDL_Event Events;
     message = TTF_RenderText_Blended( font, seedarray, textColor );
-    loadapplySurface( 60, 200, message, screen );
+    loadapplySurface( 70, 200, message, screen );
     if(SDL_Flip( screen )==-1)
     {
     TTF_Quit();
@@ -148,8 +148,8 @@ int seed()
                     }
                     SDL_Surface* blackscreen = SDL_CreateRGBSurface(0,200,100,32,0,0,0,0);
                     message = TTF_RenderText_Blended( font, seedarray, textColor );
-                    loadapplySurface( 60, 200, blackscreen,screen);
-                    loadapplySurface( 60, 200, message, screen );
+                    loadapplySurface( 70, 200, blackscreen,screen);
+                    loadapplySurface( 70, 200, message, screen );
                     if(SDL_Flip( screen )==-1)
                     {
                         TTF_Quit();
@@ -187,7 +187,7 @@ bool init() //creates the sdl Video screen and inits everything
         return false;
     }
     //create font
-    font = TTF_OpenFont("textures/IMMORTAL.ttf", 24);
+    font = TTF_OpenFont("textures/Quicksand_Bold.ttf", 24);
     if (font == NULL)
     {
         printf("TTF_OpenFont() Failed: %s\n",TTF_GetError());
@@ -214,10 +214,10 @@ int loadapplySurface(int x, int y, SDL_Surface* source, SDL_Surface* destination
     return 0;
 }
 
-void close(vector<SDL_Surface*> freeme) //ends the SDL program and frees the images
+void close(SDL_Surface* freeme[],int i) //ends the SDL program and frees the images
 {
-    for(int i=0;i<freeme.size();i++)
-        SDL_FreeSurface(freeme[i]);
+    for(int j=0;j<i;j++)
+        SDL_FreeSurface(freeme[j]);
 	SDL_FreeSurface(screen);
 	screen = NULL;
     //Quit TTF subsystems
@@ -391,16 +391,4 @@ rtd.push_back("textures/black.bmp");
 rtd.push_back("textures/darkgreen.bmp");
 rtd.push_back("textures/orange.bmp");
 return rtd;
-}
-
-//vector holds all different team texture strings
-vector<string> textureteam(){
-	vector <string> rtd;
-
-	rtd.push_back("textures/red.bmp");
-	rtd.push_back("textures/purple.bmp");
-	rtd.push_back("textures/neonblue.bmp");
-	rtd.push_back("textures/maroon.bmp");
-	rtd.push_back("textures/yellow.bmp");
-	return rtd;
 }

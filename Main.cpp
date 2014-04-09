@@ -1,5 +1,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
+#include <iostream>
 #include <string>
 #include <list>
 #include "Util.h"
@@ -24,11 +26,11 @@ int main(int argc, char* argv[]) {
 	vector< vector< land > > map1=initial((info->current_w)*2,(info->current_h)*2,(float)seedholder);
     //loads the texture images we will be using
     vector<string> textland=textureland();
-    vector<SDL_Surface*> image(textland.size());
+    SDL_Surface* image[textland.size()];
     for(int i=0;i<textland.size();i++)
     {
         if((image[i] = SDL_LoadBMP(textland[i].c_str())) == NULL) {
-            close(image);
+            close(image,i);
             return 1;
         }
     }
@@ -94,28 +96,19 @@ int main(int argc, char* argv[]) {
     }
     // Update the screen:
     if (SDL_Flip(screen) == -1) {
-                close(image);
+                close(image,textland.size());
                 return 1; // The screen failed to be updated...
             }
-    //generation of team textures
-    vector<string> textteam=textureteam();
-    vector<SDL_Surface*> image1(textteam.size());
-    for(int i=0;i<textteam.size();i++)
-    {
-        if((image1[i] = IMG_Load(textteam[i].c_str())) == NULL) {
-            close(image1);
-            return 1;}
-    }
     //team placement
     list<org> L;
     int p=0,count=0;   
-    while(p<textteam.size())
+    while(p<6)
     {
         int i=rand()%map1.size(),j=rand()%map1[0].size();
+        int r=rand()%255,g=rand()%255,b=rand()%255;
     if(map1[i][j].gettype()!='W'){
-        loadapplySurface(i/2,j/2,image1[p],screen);        
-        org temp(i,j);
-        temp.setsurf(image1[p]);
+        org temp(i,j,r,g,b);
+        loadapplySurface(i/2,j/2,temp.getsurf(2,2),screen);
         L.push_back(temp);
         if(count==5)
             {
@@ -127,28 +120,39 @@ int main(int argc, char* argv[]) {
     }
     if (SDL_Flip(screen) == -1) 
     {
-        close(image);
+        SDL_FreeSurface(screen);
+    screen = NULL;
+    //Quit TTF subsystems
+    TTF_Quit();
+    //Quit SDL subsystems 
+    SDL_Quit();
         return 1;
     }
     //runtime logic
     SDL_Event Events;
-    bool Run=true;
+    bool Run=true,swit=false;
     while(Run)
     {
 
         list<org>::iterator i;
         for(i=L.begin(); i != L.end(); ++i)
         {
-            
+            if(swit)
+            {
+                loadapplySurface(i->i/2,i->j/2,i->getsurf(2,2),screen);
+            }
+            else
+            {
+                loadapplySurface(i->i/2,i->j/2,map1[i->i][i->j].getsurf(),screen);
+            }
+            cout<<(i->i/2)<<" "<<(i->j/2)<<" "<<(i->vector[0])<<" "<<(i->vector[1])<<endl;
         }
+        swit=(!swit);
         //run game of life logic
         SDL_Delay(1000);
-        list<org> tempL;
-        
-        L=tempL;
         if (SDL_Flip(screen) == -1) 
         {
-            close(image);
+            close(image,textland.size());
             return 1;
         }
         while (SDL_PollEvent(&Events))
@@ -195,6 +199,6 @@ int main(int argc, char* argv[]) {
         }
     }
     SDL_SaveBMP( screen,"final.BMP" );
-    close(image);
+    close(image,textland.size());
     return 0;
  }
